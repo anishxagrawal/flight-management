@@ -51,80 +51,111 @@ export function FlightCard({ flight, seatClass }: FlightCardProps) {
     setSelectedFlight(flight)
   }
 
+  // Check if arrival is next day
+  const isNextDay = format(arrivalTime, 'yyyy-MM-dd') !== format(departureTime, 'yyyy-MM-dd')
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
-      className="glass-card rounded-2xl overflow-hidden"
+      className="relative rounded-xl overflow-hidden border border-white/5"
+      style={{
+        background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%), rgba(28, 27, 27, 0.7)',
+        backdropFilter: 'blur(20px)',
+      }}
     >
+      {/* Top highlight line */}
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-[#00a3ff] to-transparent opacity-50" />
+      
       <div className="p-6">
         <div className="flex flex-col lg:flex-row lg:items-center gap-6">
           {/* Airline Info */}
           <div className="flex items-center gap-4 lg:w-48">
-            <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center">
-              <span className="text-sm font-bold text-primary">{flight.airline.code}</span>
+            <div className="h-10 w-10 rounded-lg bg-white flex items-center justify-center">
+              <Plane className="h-5 w-5 text-[#131313]" />
             </div>
             <div>
-              <p className="font-semibold">{flight.airline.name}</p>
-              <p className="text-sm text-muted-foreground">{flight.flight_number}</p>
+              <p className="font-semibold text-[#e5e2e1]">{flight.airline.name}</p>
+              <p className="text-sm text-[#bec7d4] font-mono">{flight.flight_number}</p>
             </div>
+          </div>
+
+          {/* Status Badge */}
+          <div className="lg:hidden flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#00ded1] shadow-[0_0_8px_rgba(0,222,209,0.8)]" />
+            <span className="text-xs text-[#00ded1] font-mono">
+              {flight.status === 'scheduled' ? 'On Time' : flight.status}
+            </span>
           </div>
 
           {/* Flight Route */}
           <div className="flex-1 flex items-center gap-4">
             {/* Departure */}
-            <div className="text-center lg:text-left">
-              <p className="text-2xl font-bold">{format(departureTime, 'HH:mm')}</p>
-              <p className="text-sm text-muted-foreground">{flight.origin_airport.code}</p>
+            <div className="text-left">
+              <p className="text-3xl font-bold text-[#e5e2e1]">{format(departureTime, 'HH:mm')}</p>
+              <p className="text-sm text-[#bec7d4] font-mono">{flight.origin_airport.code} • {flight.origin_airport.name.split(' ')[0]}</p>
             </div>
 
             {/* Flight Path */}
-            <div className="flex-1 flex items-center gap-2 px-4">
-              <div className="h-2 w-2 rounded-full bg-primary" />
-              <div className="flex-1 relative">
-                <div className="h-px bg-border" />
-                <motion.div
-                  initial={{ x: 0 }}
-                  animate={{ x: '100%' }}
-                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                  className="absolute top-1/2 -translate-y-1/2"
-                >
-                  <Plane className="h-4 w-4 text-primary -rotate-90" />
-                </motion.div>
+            <div className="flex-1 flex flex-col items-center gap-1 px-4">
+              <div className="text-xs text-[#bec7d4] font-mono">{hours}h {minutes}m</div>
+              <div className="w-full flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full border-2 border-[#00a3ff] bg-[#131313]" />
+                <div className="flex-1 relative h-px bg-[#00a3ff]/20">
+                  {/* Animated scan line */}
+                  <motion.div
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: '100%', opacity: [0, 1, 1, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                    className="absolute top-0 left-0 h-full bg-[#00a3ff] shadow-[0_0_8px_rgba(0,163,255,0.8)]"
+                  />
+                  {/* Plane icon */}
+                  <motion.div
+                    initial={{ left: 0 }}
+                    animate={{ left: '50%' }}
+                    transition={{ duration: 0 }}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                  >
+                    <Plane className="h-4 w-4 text-[#00a3ff] rotate-90" />
+                  </motion.div>
+                </div>
+                <div className="h-2 w-2 rounded-full border-2 border-[#bec7d4] bg-[#131313]" />
               </div>
-              <div className="h-2 w-2 rounded-full bg-accent" />
+              <Badge variant="outline" className="bg-[#201f1f] border-white/10 text-[#e5e2e1] text-[10px] font-mono">
+                Direct
+              </Badge>
             </div>
 
             {/* Arrival */}
-            <div className="text-center lg:text-right">
-              <p className="text-2xl font-bold">{format(arrivalTime, 'HH:mm')}</p>
-              <p className="text-sm text-muted-foreground">{flight.destination_airport.code}</p>
-            </div>
-          </div>
-
-          {/* Duration & Price */}
-          <div className="flex items-center justify-between lg:flex-col lg:items-end gap-2 lg:w-48">
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span className="text-sm">{hours}h {minutes}m</span>
-            </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-primary">${price.toFixed(0)}</p>
-              <p className="text-xs text-muted-foreground">per person</p>
+              <p className="text-3xl font-bold text-[#e5e2e1]">
+                {format(arrivalTime, 'HH:mm')}
+                {isNextDay && <sup className="text-sm text-[#00a3ff] ml-1">+1</sup>}
+              </p>
+              <p className="text-sm text-[#bec7d4] font-mono">{flight.destination_airport.code} • {flight.destination_airport.name.split(' ')[0]}</p>
             </div>
           </div>
 
-          {/* Select Button */}
-          <div className="lg:ml-4">
+          {/* Price & Select */}
+          <div className="flex items-center justify-between lg:flex-col lg:items-end gap-4 lg:w-48 lg:pl-6 lg:border-l lg:border-white/10">
+            <div className="hidden lg:flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#00ded1] shadow-[0_0_8px_rgba(0,222,209,0.8)]" />
+              <span className="text-xs text-[#00ded1] font-mono">
+                {flight.status === 'scheduled' ? 'On Time' : flight.status}
+              </span>
+            </div>
+            <div className="text-left lg:text-right">
+              <p className="text-2xl font-bold text-[#00a3ff]">${price.toFixed(0)}</p>
+              <p className="text-xs text-[#bec7d4] font-mono">{seatClass === 'first' ? 'First Class' : seatClass === 'business' ? 'Business' : 'Economy'}</p>
+            </div>
             <Button 
-              className="w-full lg:w-auto bg-primary hover:bg-primary/90"
+              className="bg-gradient-to-r from-[#00a3ff] to-[#00629d] text-white font-semibold hover:shadow-[0_0_20px_rgba(0,163,255,0.4)] transition-all font-mono"
               onClick={handleSelect}
               asChild
             >
               <Link href={`/flights/${flight.id}/seats`}>
                 Select
-                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -133,7 +164,7 @@ export function FlightCard({ flight, seatClass }: FlightCardProps) {
         {/* Expandable Details */}
         <motion.button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="mt-4 flex items-center gap-2 text-sm text-[#bec7d4] hover:text-[#e5e2e1] transition-colors font-mono"
         >
           Flight details
           <motion.div animate={{ rotate: isExpanded ? 180 : 0 }}>
@@ -146,23 +177,23 @@ export function FlightCard({ flight, seatClass }: FlightCardProps) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="mt-4 pt-4 border-t border-border"
+            className="mt-4 pt-4 border-t border-white/5"
           >
             <div className="grid md:grid-cols-3 gap-6">
               {/* Route Details */}
               <div>
-                <h4 className="text-sm font-semibold mb-3">Route</h4>
-                <div className="space-y-2 text-sm">
+                <h4 className="text-xs font-semibold mb-3 text-[#bec7d4] font-mono uppercase tracking-wider">Route</h4>
+                <div className="space-y-2 text-sm text-[#e5e2e1]">
                   <p>
-                    <span className="text-muted-foreground">From:</span>{' '}
+                    <span className="text-[#bec7d4]">From:</span>{' '}
                     {flight.origin_airport.name}
                   </p>
                   <p>
-                    <span className="text-muted-foreground">To:</span>{' '}
+                    <span className="text-[#bec7d4]">To:</span>{' '}
                     {flight.destination_airport.name}
                   </p>
                   <p>
-                    <span className="text-muted-foreground">Date:</span>{' '}
+                    <span className="text-[#bec7d4]">Date:</span>{' '}
                     {format(departureTime, 'EEEE, MMMM d, yyyy')}
                   </p>
                 </div>
@@ -170,10 +201,10 @@ export function FlightCard({ flight, seatClass }: FlightCardProps) {
 
               {/* Aircraft */}
               <div>
-                <h4 className="text-sm font-semibold mb-3">Aircraft</h4>
-                <div className="space-y-2 text-sm">
+                <h4 className="text-xs font-semibold mb-3 text-[#bec7d4] font-mono uppercase tracking-wider">Aircraft</h4>
+                <div className="space-y-2 text-sm text-[#e5e2e1]">
                   <p>{flight.aircraft.manufacturer} {flight.aircraft.model}</p>
-                  <p className="text-muted-foreground">
+                  <p className="text-[#bec7d4]">
                     {flight.aircraft.total_seats} seats
                   </p>
                 </div>
@@ -181,13 +212,16 @@ export function FlightCard({ flight, seatClass }: FlightCardProps) {
 
               {/* Amenities */}
               <div>
-                <h4 className="text-sm font-semibold mb-3">Amenities</h4>
+                <h4 className="text-xs font-semibold mb-3 text-[#bec7d4] font-mono uppercase tracking-wider">Amenities</h4>
                 <div className="flex flex-wrap gap-2">
                   {amenities.map((amenity) => (
                     <Badge
                       key={amenity.label}
-                      variant={amenity.available ? 'default' : 'secondary'}
-                      className={amenity.available ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'opacity-50'}
+                      variant="outline"
+                      className={amenity.available 
+                        ? 'bg-[#00a3ff]/10 border-[#00a3ff]/30 text-[#00a3ff]' 
+                        : 'bg-[#2a2a2a] border-white/5 text-[#bec7d4] opacity-50'
+                      }
                     >
                       <amenity.icon className="h-3 w-3 mr-1" />
                       {amenity.label}
@@ -198,28 +232,6 @@ export function FlightCard({ flight, seatClass }: FlightCardProps) {
             </div>
           </motion.div>
         )}
-      </div>
-
-      {/* Status Bar */}
-      <div className="px-6 py-3 bg-secondary/30 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Badge 
-            variant="outline" 
-            className={`
-              ${flight.status === 'scheduled' ? 'border-primary/50 text-primary' : ''}
-              ${flight.status === 'delayed' ? 'border-yellow-500/50 text-yellow-500' : ''}
-              ${flight.status === 'cancelled' ? 'border-destructive/50 text-destructive' : ''}
-            `}
-          >
-            {flight.status.charAt(0).toUpperCase() + flight.status.slice(1)}
-          </Badge>
-          <span className="text-xs text-muted-foreground">
-            {seatClass === 'first' ? 'First Class' : seatClass === 'business' ? 'Business' : 'Economy'}
-          </span>
-        </div>
-        <span className="text-xs text-muted-foreground">
-          Direct flight
-        </span>
       </div>
     </motion.div>
   )

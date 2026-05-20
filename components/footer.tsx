@@ -1,129 +1,57 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Plane, Twitter, Instagram, Linkedin, Github } from 'lucide-react'
 
-const footerLinks = {
-  company: [
-    { label: 'About Us', href: '/about' },
-    { label: 'Careers', href: '/careers' },
-    { label: 'Press', href: '/press' },
-    { label: 'Blog', href: '/blog' },
-  ],
-  support: [
-    { label: 'Help Center', href: '/help' },
-    { label: 'Contact Us', href: '/contact' },
-    { label: 'FAQs', href: '/faqs' },
-    { label: 'Accessibility', href: '/accessibility' },
-  ],
-  legal: [
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
-    { label: 'Cookie Policy', href: '/cookies' },
-    { label: 'Refund Policy', href: '/refunds' },
-  ],
-}
-
-const socialLinks = [
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
-  { icon: Github, href: '#', label: 'GitHub' },
+const footerLinks = [
+  { label: 'Privacy Protocol', href: '/privacy' },
+  { label: 'Terms of Service', href: '/terms' },
+  { label: 'API Status', href: '/api-status' },
+  { label: 'Global Network', href: '/network' },
 ]
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/50 bg-card/30">
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12">
+    <footer className="border-t border-white/5 bg-gradient-to-t from-[#0e0e0e] to-[#131313]">
+      <div className="container mx-auto px-4 md:px-10 py-8">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Brand */}
-          <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <Plane className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold gradient-text">SkyVoyage</span>
-            </Link>
-            <p className="text-muted-foreground text-sm mb-6 max-w-sm">
-              Experience the future of flight booking with real-time seat selection, 
-              stunning animations, and premium travel experiences.
-            </p>
-            <div className="flex gap-4">
-              {socialLinks.map((social) => (
-                <motion.a
-                  key={social.label}
-                  href={social.href}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center hover:bg-primary/20 transition-colors"
-                  aria-label={social.label}
-                >
-                  <social.icon className="h-4 w-4 text-muted-foreground" />
-                </motion.a>
-              ))}
-            </div>
-          </div>
-
-          {/* Links */}
-          <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-3">
-              {footerLinks.company.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-4">Support</h4>
-            <ul className="space-y-3">
-              {footerLinks.support.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
-            <ul className="space-y-3">
-              {footerLinks.legal.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* Bottom */}
-        <div className="border-t border-border/50 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">
-            {new Date().getFullYear()} SkyVoyage. All rights reserved.
-          </p>
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-muted-foreground">
-              Powered by Next.js & Supabase
+          <div className="flex items-center gap-6">
+            <span className="text-xl font-bold tracking-tighter text-[#e5e2e1] font-sans">
+              AeroCommand
             </span>
+            
+            {/* Links */}
+            <nav className="hidden md:flex items-center gap-6">
+              {footerLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="text-xs text-[#bec7d4] hover:text-[#e5e2e1] transition-colors font-mono tracking-wide"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
           </div>
+
+          {/* Copyright */}
+          <p className="text-xs text-[#bec7d4] font-mono">
+            © 2024 AeroCommand Systems. All altitudes cleared.
+          </p>
         </div>
+        
+        {/* Mobile Links */}
+        <nav className="flex md:hidden flex-wrap justify-center gap-4 mt-6 pt-6 border-t border-white/5">
+          {footerLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-xs text-[#bec7d4] hover:text-[#e5e2e1] transition-colors font-mono"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
       </div>
     </footer>
   )

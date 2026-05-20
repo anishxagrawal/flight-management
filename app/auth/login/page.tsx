@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plane, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react'
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -39,122 +39,120 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Form */}
+    <div className="min-h-screen flex bg-[#131313]">
+      {/* Left Side - Visual (cockpit image) */}
+      <div className="hidden lg:flex flex-1 items-end relative overflow-hidden">
+        {/* Background image placeholder - using gradient to simulate cockpit */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%), radial-gradient(ellipse at center top, rgba(0,163,255,0.1) 0%, transparent 50%)',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#131313] via-transparent to-transparent" />
+        
+        {/* Brand text at bottom */}
+        <div className="relative z-10 p-10">
+          <h2 className="text-4xl md:text-5xl font-bold text-[#00a3ff] italic tracking-tight font-sans mb-4">
+            AeroCommand
+          </h2>
+          <p className="text-[#bec7d4] max-w-md leading-relaxed">
+            Precision flight management and terminal operations for the modern aerospace network.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="w-full max-w-md"
         >
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 mb-8">
-            <Plane className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold gradient-text">SkyVoyage</span>
-          </Link>
+          {/* Glass Card */}
+          <div 
+            className="rounded-xl p-8 border border-white/5"
+            style={{
+              background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%), rgba(28, 27, 27, 0.6)',
+              backdropFilter: 'blur(20px)',
+            }}
+          >
+            <h1 className="text-3xl font-bold mb-2 text-[#e5e2e1] font-sans">Secure Access</h1>
+            <p className="text-[#bec7d4] mb-8">
+              Enter your credentials to initiate sequence.
+            </p>
 
-          <h1 className="text-3xl font-bold mb-2">Welcome back</h1>
-          <p className="text-muted-foreground mb-8">
-            Sign in to your account to continue your journey
-          </p>
-
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12 bg-secondary/50 border-border/50"
-                />
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-xs text-[#bec7d4] font-mono tracking-wider uppercase">Operator ID</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#bec7d4]" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="AC-8492"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 h-12 bg-[#121212] border-white/5 border-b-white/10 text-[#e5e2e1] placeholder:text-[#bec7d4]/50 focus:border-[#00a3ff] focus:border-b-[#00a3ff]"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 h-12 bg-secondary/50 border-border/50"
-                />
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="password" className="text-xs text-[#bec7d4] font-mono tracking-wider uppercase">Passkey</Label>
+                  <Link href="/auth/forgot-password" className="text-xs text-[#00a3ff] hover:underline font-mono">
+                    Forgot Passkey?
+                  </Link>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#bec7d4]" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 h-12 bg-[#121212] border-white/5 border-b-white/10 text-[#e5e2e1] placeholder:text-[#bec7d4]/50 focus:border-[#00a3ff] focus:border-b-[#00a3ff]"
+                  />
+                </div>
               </div>
-            </div>
 
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-lg bg-destructive/10 border border-destructive/20"
-              >
-                <p className="text-sm text-destructive">{error}</p>
-              </motion.div>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full h-12 bg-primary hover:bg-primary/90"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  Sign In
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-lg bg-[#93000a]/20 border border-[#ffb4ab]/20"
+                >
+                  <p className="text-sm text-[#ffb4ab]">{error}</p>
+                </motion.div>
               )}
-            </Button>
-          </form>
 
-          <p className="mt-8 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <Link href="/auth/sign-up" className="text-primary hover:underline">
-              Create one
-            </Link>
-          </p>
-        </motion.div>
-      </div>
+              <Button
+                type="submit"
+                className="w-full h-12 bg-gradient-to-r from-[#00a3ff] to-[#00ded1] text-[#003354] font-semibold hover:shadow-[0_0_20px_rgba(0,163,255,0.4)] transition-all font-mono"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    Authenticate
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </form>
 
-      {/* Right Side - Visual */}
-      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-primary/20 via-background to-accent/10 relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-accent/10 rounded-full blur-3xl" />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="relative z-10 text-center p-8"
-        >
-          <div className="relative mb-8">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
-              className="absolute inset-0 border-2 border-dashed border-primary/20 rounded-full"
-              style={{ width: '200px', height: '200px', margin: 'auto' }}
-            />
-            <div className="w-48 h-48 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-              <Plane className="h-24 w-24 text-primary" />
-            </div>
+            <p className="mt-8 text-center text-sm text-[#bec7d4]">
+              New operator?{' '}
+              <Link href="/auth/sign-up" className="text-[#00a3ff] hover:underline">
+                Request Access
+              </Link>
+            </p>
           </div>
-          <h2 className="text-2xl font-bold mb-4">Ready for takeoff?</h2>
-          <p className="text-muted-foreground max-w-sm">
-            Sign in to access your bookings, manage your profile, and explore new destinations.
-          </p>
         </motion.div>
       </div>
     </div>

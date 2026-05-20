@@ -5,8 +5,6 @@ import { motion } from 'framer-motion'
 import { 
   Plane, 
   Filter, 
-  SortAsc, 
-  SortDesc,
   Clock,
   DollarSign,
   X
@@ -104,7 +102,7 @@ export function FlightResults({ initialFlights, airports, searchParams }: Flight
 
   return (
     <div className="pt-24 pb-12 min-h-screen">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 md:px-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -113,16 +111,18 @@ export function FlightResults({ initialFlights, airports, searchParams }: Flight
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">
+              <h1 className="text-3xl font-bold mb-2 font-sans flex items-center gap-3">
                 {originAirport && destinationAirport ? (
                   <>
-                    {originAirport.city} <span className="text-primary">→</span> {destinationAirport.city}
+                    <span className="text-[#e5e2e1]">{originAirport.code}</span>
+                    <span className="text-[#00a3ff]">{'→'}</span>
+                    <span className="text-[#e5e2e1]">{destinationAirport.code}</span>
                   </>
                 ) : (
                   'Available Flights'
                 )}
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-[#bec7d4] font-mono text-sm">
                 {filteredFlights.length} {filteredFlights.length === 1 ? 'flight' : 'flights'} found
                 {searchParams.date && ` • ${new Date(searchParams.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
                 {` • ${passengers} ${passengers === 1 ? 'passenger' : 'passengers'}`}
@@ -135,42 +135,42 @@ export function FlightResults({ initialFlights, airports, searchParams }: Flight
                 variant="outline"
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
-                className="gap-2"
+                className="gap-2 bg-[#2a2a2a] border-white/10 text-[#e5e2e1] hover:bg-[#3a3939] font-mono"
               >
                 <Filter className="h-4 w-4" />
                 Filters
                 {selectedAirlines.length > 0 && (
-                  <Badge variant="secondary" className="ml-1">
+                  <Badge className="ml-1 bg-[#00a3ff] text-[#003354]">
                     {selectedAirlines.length}
                   </Badge>
                 )}
               </Button>
 
               <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] bg-[#2a2a2a] border-white/10 text-[#e5e2e1]">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
-                <SelectContent className="glass-card">
+                <SelectContent className="bg-[#1c1b1b] border-white/10">
                   <SelectItem value="price-asc">
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 text-[#e5e2e1]">
                       <DollarSign className="h-4 w-4" />
                       Price: Low to High
                     </span>
                   </SelectItem>
                   <SelectItem value="price-desc">
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 text-[#e5e2e1]">
                       <DollarSign className="h-4 w-4" />
                       Price: High to Low
                     </span>
                   </SelectItem>
                   <SelectItem value="duration-asc">
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 text-[#e5e2e1]">
                       <Clock className="h-4 w-4" />
                       Duration: Shortest
                     </span>
                   </SelectItem>
                   <SelectItem value="departure-asc">
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 text-[#e5e2e1]">
                       <Plane className="h-4 w-4" />
                       Departure: Earliest
                     </span>
@@ -186,16 +186,20 @@ export function FlightResults({ initialFlights, airports, searchParams }: Flight
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="glass-card rounded-xl p-4 mb-6"
+              className="rounded-xl p-4 mb-6 border border-white/5"
+              style={{
+                background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%), rgba(28, 27, 27, 0.5)',
+                backdropFilter: 'blur(20px)',
+              }}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Filter by Airline</h3>
+                <h3 className="font-semibold text-[#e5e2e1]">Filter by Airline</h3>
                 {selectedAirlines.length > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedAirlines([])}
-                    className="text-muted-foreground"
+                    className="text-[#bec7d4] hover:text-[#e5e2e1]"
                   >
                     Clear all
                     <X className="ml-1 h-3 w-3" />
@@ -209,7 +213,10 @@ export function FlightResults({ initialFlights, airports, searchParams }: Flight
                     variant={selectedAirlines.includes(airline.id) ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => toggleAirline(airline.id)}
-                    className={selectedAirlines.includes(airline.id) ? 'bg-primary' : ''}
+                    className={selectedAirlines.includes(airline.id) 
+                      ? 'bg-[#00a3ff] text-[#003354] hover:bg-[#00a3ff]/90' 
+                      : 'bg-[#2a2a2a] border-white/10 text-[#e5e2e1] hover:bg-[#3a3939]'
+                    }
                   >
                     {airline.name}
                   </Button>
@@ -238,14 +245,14 @@ export function FlightResults({ initialFlights, airports, searchParams }: Flight
               animate={{ opacity: 1 }}
               className="text-center py-16"
             >
-              <div className="h-24 w-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-                <Plane className="h-12 w-12 text-muted-foreground" />
+              <div className="h-24 w-24 mx-auto mb-6 rounded-full bg-[#2a2a2a] flex items-center justify-center">
+                <Plane className="h-12 w-12 text-[#bec7d4]" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">No flights found</h3>
-              <p className="text-muted-foreground mb-6">
+              <h3 className="text-xl font-semibold mb-2 text-[#e5e2e1]">No flights found</h3>
+              <p className="text-[#bec7d4] mb-6">
                 Try adjusting your search criteria or selecting different dates
               </p>
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="bg-[#2a2a2a] border-white/10 text-[#e5e2e1] hover:bg-[#3a3939]">
                 <a href="/">New Search</a>
               </Button>
             </motion.div>

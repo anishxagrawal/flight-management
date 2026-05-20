@@ -1,126 +1,78 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Plane, ArrowRight } from 'lucide-react'
+import { Globe, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-
-const destinations = [
-  {
-    city: 'New York',
-    country: 'United States',
-    code: 'JFK',
-    image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80',
-    price: 'From $349',
-  },
-  {
-    city: 'London',
-    country: 'United Kingdom',
-    code: 'LHR',
-    image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80',
-    price: 'From $599',
-  },
-  {
-    city: 'Dubai',
-    country: 'UAE',
-    code: 'DXB',
-    image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=80',
-    price: 'From $799',
-  },
-  {
-    city: 'Singapore',
-    country: 'Singapore',
-    code: 'SIN',
-    image: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',
-    price: 'From $899',
-  },
-  {
-    city: 'Tokyo',
-    country: 'Japan',
-    code: 'HND',
-    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80',
-    price: 'From $999',
-  },
-  {
-    city: 'Paris',
-    country: 'France',
-    code: 'CDG',
-    image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80',
-    price: 'From $549',
-  },
-]
 
 export function PopularDestinations() {
   return (
-    <section className="py-24 px-4">
-      <div className="container mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Popular <span className="gradient-text">Destinations</span>
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore our most booked destinations and find your next adventure
-          </p>
-        </motion.div>
+    <section className="py-24 px-4 md:px-10 bg-[#131313]">
+      <div className="container mx-auto max-w-6xl">
+        {/* Bento Grid */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {/* Stats Card - Live Global Routes */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative rounded-xl p-6 border border-white/5 overflow-hidden"
+            style={{
+              background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%), rgba(28, 27, 27, 0.5)',
+            }}
+          >
+            {/* Top highlight */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            
+            <div className="flex items-center justify-between mb-8">
+              <Globe className="h-8 w-8 text-[#00a3ff]" />
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00ded1]/10 border border-[#00ded1]/20 text-[#00ded1] text-xs font-mono">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ded1] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00ded1]" />
+                </span>
+                Live
+              </span>
+            </div>
+            
+            <div className="text-5xl md:text-6xl font-bold text-[#e5e2e1] mb-2 font-sans">
+              4,280
+            </div>
+            <div className="text-sm text-[#bec7d4] font-mono tracking-wider uppercase">
+              Active Global Routes
+            </div>
+          </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {destinations.map((dest, index) => (
-            <motion.div
-              key={dest.code}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -5 }}
-              className="group relative overflow-hidden rounded-2xl glass-card"
+          {/* Feature Card - Next-Gen Avionics */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="md:col-span-2 relative rounded-xl p-6 border border-white/5 overflow-hidden"
+            style={{
+              background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%), rgba(28, 27, 27, 0.5)',
+            }}
+          >
+            {/* Top highlight */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            
+            <h3 className="text-2xl md:text-3xl font-semibold text-[#e5e2e1] mb-4 font-sans">
+              Next-Gen Avionics Data
+            </h3>
+            
+            <p className="text-[#bec7d4] mb-6 max-w-lg leading-relaxed">
+              Integrate real-time weather, air traffic control feeds, and fleet telemetrics into a singular, cohesive command interface.
+            </p>
+            
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-[#2a2a2a] border border-white/10 text-[#e5e2e1] font-medium text-sm hover:bg-[#3a3939] transition-all font-mono tracking-wide"
             >
-              {/* Background Image */}
-              <div className="absolute inset-0">
-                <img
-                  src={dest.image}
-                  alt={dest.city}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-              </div>
-
-              {/* Content */}
-              <div className="relative p-6 h-64 flex flex-col justify-end">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="text-xl font-bold text-foreground">{dest.city}</h3>
-                    <p className="text-sm text-muted-foreground">{dest.country}</p>
-                  </div>
-                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <span className="text-xs font-bold text-primary">{dest.code}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-primary font-semibold">{dest.price}</span>
-                  <motion.div
-                    whileHover={{ x: 5 }}
-                    className="flex items-center gap-1 text-sm text-muted-foreground group-hover:text-primary transition-colors"
-                  >
-                    Explore <ArrowRight className="h-4 w-4" />
-                  </motion.div>
-                </div>
-
-                {/* Animated plane on hover */}
-                <motion.div
-                  initial={{ x: -50, opacity: 0 }}
-                  whileHover={{ x: 0, opacity: 1 }}
-                  className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Plane className="h-6 w-6 text-primary rotate-[-30deg]" />
-                </motion.div>
-              </div>
-            </motion.div>
-          ))}
+              View Instrumentation
+              <ArrowRight className="h-4 w-4" />
+            </motion.button>
+          </motion.div>
         </div>
       </div>
     </section>

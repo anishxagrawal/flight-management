@@ -55,7 +55,7 @@ export default async function FlightsPage({ searchParams }: FlightsPageProps) {
     .order('city')
   
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-[#131313] text-[#e5e2e1]">
       <Header />
       <FlightResults 
         initialFlights={flights || []} 
