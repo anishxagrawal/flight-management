@@ -3,6 +3,11 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { FlightResults } from './flight-results'
 
+export const metadata = {
+  title: 'Search Flights | SkyVoyage',
+  description: 'Find and compare the best flights for your journey.',
+}
+
 interface FlightsPageProps {
   searchParams: Promise<{
     origin?: string

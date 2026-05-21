@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge'
 import { useState } from 'react'
 import type { FlightWithDetails, SeatClass } from '@/lib/types'
 import Link from 'next/link'
-import { useBookingStore } from '@/lib/booking-store'
+import { useFlightStore } from '@/lib/stores/flight-store'
 
 interface FlightCardProps {
   flight: FlightWithDetails
@@ -26,7 +26,7 @@ interface FlightCardProps {
 
 export function FlightCard({ flight, seatClass }: FlightCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const { setSelectedFlight } = useBookingStore()
+  const { setSelectedFlight } = useFlightStore()
   
   const departureTime = new Date(flight.departure_time)
   const arrivalTime = new Date(flight.arrival_time)

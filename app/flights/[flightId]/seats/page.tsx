@@ -2,6 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { SeatSelectionPage } from './seat-selection-page'
 
+export const metadata = {
+  title: 'Select Your Seat | SkyVoyage',
+  description: 'Choose your perfect seat with real-time availability.',
+}
+
 interface PageProps {
   params: Promise<{ flightId: string }>
 }

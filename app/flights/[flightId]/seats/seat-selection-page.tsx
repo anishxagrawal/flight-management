@@ -17,7 +17,7 @@ import { Footer } from '@/components/footer'
 import { SeatMap } from '@/components/seat-map'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useBookingStore, calculateTotalPrice } from '@/lib/booking-store'
+import { useFlightStore, calculateTotalPrice } from '@/lib/stores/flight-store'
 import type { FlightWithDetails, Seat, SeatClass } from '@/lib/types'
 import type { User } from '@supabase/supabase-js'
 import Link from 'next/link'
@@ -35,7 +35,7 @@ export function SeatSelectionPage({ flight, initialSeats, user }: SeatSelectionP
     searchParams, 
     setSelectedFlight,
     clearSeats
-  } = useBookingStore()
+  } = useFlightStore()
   
   const [isLoading, setIsLoading] = useState(false)
   

@@ -1,3 +1,8 @@
+/**
+ * @deprecated Use lib/stores/flight-store.ts and lib/stores/user-store.ts instead
+ * This file is kept for backward compatibility but should not be used in new code.
+ */
+
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { FlightWithDetails, Seat, Passenger, SeatClass } from './types'

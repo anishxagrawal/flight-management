@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import type { Seat, SeatClass } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { useBookingStore } from '@/lib/booking-store'
+import { useFlightStore } from '@/lib/stores/flight-store'
 
 interface SeatMapProps {
   flightId: string
@@ -16,7 +17,7 @@ interface SeatMapProps {
 
 export function SeatMap({ flightId, initialSeats, passengerCount, seatClass }: SeatMapProps) {
   const [seats, setSeats] = useState<Seat[]>(initialSeats)
-  const { selectedSeats, addSeat, removeSeat } = useBookingStore()
+  const { selectedSeats, addSeat, removeSeat } = useFlightStore()
   const [userId, setUserId] = useState<string | null>(null)
   const [hoveredSeat, setHoveredSeat] = useState<string | null>(null)
 
@@ -62,7 +63,7 @@ export function SeatMap({ flightId, initialSeats, passengerCount, seatClass }: S
 
   const handleSeatClick = useCallback(async (seat: Seat) => {
     if (!userId) {
-      alert('Please sign in to select seats')
+      toast.error('Please sign in to select seats')
       return
     }
     
@@ -90,25 +91,24 @@ export function SeatMap({ flightId, initialSeats, passengerCount, seatClass }: S
     } else {
       // Check if max seats reached
       if (selectedSeats.length >= passengerCount) {
-        alert(`You can only select ${passengerCount} seat(s)`)
+        toast.warning(`You can only select ${passengerCount} seat(s)`)
         return
       }
       
-      // Select seat
+      // Select seat using RPC for thread-safety
       const supabase = createClient()
-      const { error } = await supabase
-        .from('seats')
-        .update({ 
-          status: 'selected', 
-          selected_by: userId,
-          selected_at: new Date().toISOString()
-        })
-        .eq('id', seat.id)
-        .eq('status', 'available')
+      const { data, error } = await supabase.rpc('reserve_seat', {
+        p_seat_id: seat.id,
+        p_user_id: userId
+      })
       
-      if (!error) {
-        addSeat({ ...seat, status: 'selected', selected_by: userId })
+      if (error || !data?.success) {
+        toast.error(data?.message || 'Seat is no longer available. Please select another seat.')
+        return
       }
+      
+      // Add to local state after successful reservation
+      addSeat({ ...seat, status: 'selected', selected_by: userId })
     }
   }, [userId, selectedSeats, passengerCount, addSeat, removeSeat])
 

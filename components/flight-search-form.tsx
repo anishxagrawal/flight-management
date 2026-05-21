@@ -27,14 +27,14 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { createClient } from '@/lib/supabase/client'
-import { useBookingStore } from '@/lib/booking-store'
+import { useFlightStore } from '@/lib/stores/flight-store'
 import type { Airport, SeatClass } from '@/lib/types'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 
 export function FlightSearchForm() {
   const router = useRouter()
-  const { searchParams, setSearchParams } = useBookingStore()
+  const { searchParams, setSearchParams } = useFlightStore()
   const [airports, setAirports] = useState<Airport[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [originSearch, setOriginSearch] = useState('')

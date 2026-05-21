@@ -22,7 +22,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useBookingStore } from '@/lib/booking-store'
+import { useFlightStore } from '@/lib/stores/flight-store'
 import type { BookingWithDetails } from '@/lib/types'
 import { useState } from 'react'
 
@@ -31,7 +31,7 @@ interface ConfirmationPageProps {
 }
 
 export function ConfirmationPage({ booking }: ConfirmationPageProps) {
-  const { reset } = useBookingStore()
+  const { reset } = useFlightStore()
   const [copied, setCopied] = useState(false)
   
   // Clear the booking store after successful booking

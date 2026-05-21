@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { format, differenceInMinutes } from 'date-fns'
+import { toast } from 'sonner'
 import { 
   Plane, 
   User, 
@@ -24,7 +25,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { createClient } from '@/lib/supabase/client'
-import { useBookingStore, calculateTotalPrice, generatePNR } from '@/lib/booking-store'
+import { useFlightStore, calculateTotalPrice, generatePNR } from '@/lib/stores/flight-store'
 import type { FlightWithDetails, Profile, Passenger } from '@/lib/types'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -36,7 +37,7 @@ interface BookingPageProps {
 
 export function BookingPage({ flight, user, profile }: BookingPageProps) {
   const router = useRouter()
-  const { selectedSeats, searchParams, setBookingComplete, reset } = useBookingStore()
+  const { selectedSeats, searchParams, setBookingComplete, reset } = useFlightStore()
   
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -87,6 +88,7 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
   const handleSubmit = async () => {
     if (!isFormValid()) {
       setError('Please fill in all required fields and agree to the terms')
+      toast.error('Please fill in all required fields and agree to the terms')
       return
     }
     
@@ -140,13 +142,18 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
       
       if (seatError) throw seatError
       
+      // Success toast
+      toast.success('Booking confirmed! 🎉')
+      
       // Store booking info and redirect
       setBookingComplete(booking.id, pnrCode)
       router.push(`/bookings/${booking.id}/confirmation`)
       
     } catch (err) {
       console.error('Booking error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to complete booking')
+      const message = err instanceof Error ? err.message : 'Failed to complete booking'
+      toast.error(message)
+      setError(message)
     } finally {
       setIsLoading(false)
     }
