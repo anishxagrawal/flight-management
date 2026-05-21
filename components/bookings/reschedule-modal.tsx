@@ -83,7 +83,10 @@ export default function RescheduleModal({ open, onClose, booking, onSuccess }: R
           fee_charged: feeCharged,
         })
 
-      if (rescheduleError) throw rescheduleError
+      if (rescheduleError) {
+        toast.error(rescheduleError.message || 'Failed to reschedule')
+        return
+      }
 
       // Update booking with new flight
       const { error: updateError } = await supabase
@@ -95,7 +98,10 @@ export default function RescheduleModal({ open, onClose, booking, onSuccess }: R
         })
         .eq('id', booking.id)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        toast.error(updateError.message || 'Failed to update booking')
+        return
+      }
 
       toast.success(
         feeCharged > 0
@@ -104,13 +110,14 @@ export default function RescheduleModal({ open, onClose, booking, onSuccess }: R
       )
       onSuccess()
       onClose()
-    } catch (error: unknown) {
-      console.error('Reschedule error:', error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error('Failed to reschedule flight')
-      }
+    } catch (err) {
+      const message = err instanceof Error 
+        ? err.message 
+        : typeof err === 'object' && err !== null && 'message' in err
+          ? (err as { message: string }).message
+          : 'Failed to reschedule booking'
+      console.error('Reschedule error:', err)
+      toast.error(message)
     } finally {
       setRescheduling(false)
     }

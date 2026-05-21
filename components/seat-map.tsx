@@ -71,16 +71,21 @@ export function SeatMap({ flightId, initialSeats, passengerCount, seatClass }: S
       return
     }
 
+    // Check if seat is selected by someone else (temporarily held)
+    if (seat.status === 'selected' && seat.selected_by !== userId) {
+      toast.warning('This seat is temporarily held by another user')
+      return
+    }
+
     // Check if this seat is selected by current user
     const isSelected = selectedSeats.some(s => s.id === seat.id)
     
     if (isSelected) {
-      // Deselect seat
+      // Deselect seat - revert to available
       removeSeat(seat.id)
       
-      // Update in database
       const supabase = createClient()
-      await supabase
+      const { error } = await supabase
         .from('seats')
         .update({ 
           status: 'available', 
@@ -88,6 +93,11 @@ export function SeatMap({ flightId, initialSeats, passengerCount, seatClass }: S
           selected_at: null 
         })
         .eq('id', seat.id)
+        .eq('selected_by', userId) // only release if this user selected it
+      
+      if (error) {
+        console.error('Error releasing seat:', error)
+      }
     } else {
       // Check if max seats reached
       if (selectedSeats.length >= passengerCount) {
@@ -95,20 +105,27 @@ export function SeatMap({ flightId, initialSeats, passengerCount, seatClass }: S
         return
       }
       
-      // Select seat using RPC for thread-safety
+      // Select seat - mark as temporarily held
       const supabase = createClient()
-      const { data, error } = await supabase.rpc('reserve_seat', {
-        p_seat_id: seat.id,
-        p_user_id: userId
-      })
+      const { error, count } = await supabase
+        .from('seats')
+        .update({ 
+          status: 'selected', 
+          selected_by: userId,
+          selected_at: new Date().toISOString()
+        })
+        .eq('id', seat.id)
+        .eq('status', 'available') // only if still available
       
-      if (error || !data?.success) {
-        toast.error(data?.message || 'Seat is no longer available. Please select another seat.')
+      if (error || count === 0) {
+        toast.error('Seat just got taken, please choose another')
         return
       }
       
-      // Add to local state after successful reservation
+      // Add to local state after successful selection
       addSeat({ ...seat, status: 'selected', selected_by: userId })
+      console.log('✅ Seat added to store:', seat.seat_number)
+      console.log('Current selectedSeats in store:', selectedSeats)
     }
   }, [userId, selectedSeats, passengerCount, addSeat, removeSeat])
 
@@ -185,12 +202,12 @@ export function SeatMap({ flightId, initialSeats, passengerCount, seatClass }: S
               <span>Your Selection</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded seat-occupied" />
-              <span>Occupied</span>
+              <div className="w-4 h-4 rounded bg-yellow-500/20 border border-yellow-500/50" />
+              <span>Temporarily Held</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-yellow-500/20 border border-yellow-500/50" />
-              <span>Being Selected</span>
+              <div className="w-4 h-4 rounded seat-occupied" />
+              <span>Occupied</span>
             </div>
           </div>
 

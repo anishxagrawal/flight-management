@@ -16,7 +16,7 @@ export const metadata = {
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen pt-24">
       <Header />
       <HeroSection />
       

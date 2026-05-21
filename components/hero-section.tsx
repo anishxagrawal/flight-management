@@ -23,7 +23,7 @@ const features = [
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-20">
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Gradient Orbs */}

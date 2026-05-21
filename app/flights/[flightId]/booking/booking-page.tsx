@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { format, differenceInMinutes } from 'date-fns'
@@ -11,9 +11,7 @@ import {
   Mail, 
   Phone,
   CreditCard,
-  ArrowRight,
   Check,
-  Clock,
   Shield,
   FileText
 } from 'lucide-react'
@@ -23,7 +21,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
 import { createClient } from '@/lib/supabase/client'
 import { useFlightStore, calculateTotalPrice, generatePNR } from '@/lib/stores/flight-store'
 import type { FlightWithDetails, Profile, Passenger } from '@/lib/types'
@@ -37,7 +34,7 @@ interface BookingPageProps {
 
 export function BookingPage({ flight, user, profile }: BookingPageProps) {
   const router = useRouter()
-  const { selectedSeats, searchParams, setBookingComplete, reset } = useFlightStore()
+  const { selectedSeats, searchParams, setBookingComplete } = useFlightStore()
   
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,6 +42,35 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
   
   const seatClass = searchParams.seatClass || 'economy'
   const passengers = searchParams.passengers || 1
+  
+  // Debug: Log store state and localStorage
+  console.log('=== BOOKING PAGE DEBUG ===')
+  console.log('selectedSeats from store:', selectedSeats)
+  console.log('searchParams from store:', searchParams)
+  console.log('flight:', flight)
+  
+  // Check localStorage
+  if (typeof window !== 'undefined') {
+    const storedData = localStorage.getItem('flight-booking-storage')
+    console.log('localStorage flight-booking-storage:', storedData)
+    if (storedData) {
+      try {
+        const parsed = JSON.parse(storedData)
+        console.log('Parsed localStorage:', parsed)
+      } catch (e) {
+        console.log('Error parsing localStorage:', e)
+      }
+    }
+  }
+  console.log('=== END DEBUG ===')
+  
+  // If no seats selected, redirect back to seat selection
+  useEffect(() => {
+    if (selectedSeats.length === 0) {
+      console.log('No seats selected, redirecting to seat selection...')
+      router.push(`/flights/${flight.id}/seats`)
+    }
+  }, [selectedSeats.length, flight.id, router])
   
   // Initialize passenger forms
   const [passengerForms, setPassengerForms] = useState<Partial<Passenger>[]>(
@@ -60,6 +86,25 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
       seat_id: seat.id,
     }))
   )
+  
+  // Update passenger forms when selectedSeats changes
+  useEffect(() => {
+    if (selectedSeats.length > 0) {
+      setPassengerForms(
+        selectedSeats.map((seat, index) => ({
+          first_name: index === 0 ? profile?.full_name?.split(' ')[0] || '' : '',
+          last_name: index === 0 ? profile?.full_name?.split(' ').slice(1).join(' ') || '' : '',
+          email: index === 0 ? user.email || '' : '',
+          phone: index === 0 ? profile?.phone || '' : '',
+          passport_number: '',
+          nationality: '',
+          date_of_birth: '',
+          is_primary: index === 0,
+          seat_id: seat.id,
+        }))
+      )
+    }
+  }, [selectedSeats, profile, user])
   
   const departureTime = new Date(flight.departure_time)
   const arrivalTime = new Date(flight.arrival_time)
@@ -78,11 +123,32 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
   }
   
   const isFormValid = () => {
-    return passengerForms.every(p => 
+    // Debug logging
+    console.log('=== FORM VALIDATION DEBUG ===')
+    console.log('selectedSeats:', selectedSeats)
+    console.log('selectedSeats.length:', selectedSeats.length)
+    console.log('passengerForms:', passengerForms)
+    console.log('passengerForms.length:', passengerForms.length)
+    console.log('agreeToTerms:', agreeToTerms)
+    
+    // Check if we have seats selected
+    if (selectedSeats.length === 0) {
+      console.log('❌ No seats selected')
+      return false
+    }
+    
+    // Check if passenger forms are filled
+    const formsValid = passengerForms.every(p => 
       p.first_name && 
       p.last_name && 
       p.email
-    ) && agreeToTerms
+    )
+    console.log('formsValid:', formsValid)
+    console.log('agreeToTerms:', agreeToTerms)
+    console.log('Final result:', formsValid && agreeToTerms)
+    console.log('=== END DEBUG ===')
+    
+    return formsValid && agreeToTerms && selectedSeats.length > 0
   }
   
   const handleSubmit = async () => {
@@ -105,6 +171,7 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
         .insert({
           user_id: user.id,
           flight_id: flight.id,
+          seat_id: selectedSeats[0].id, // Primary seat for the booking
           pnr_code: pnrCode,
           status: 'confirmed',
           total_price: totalPrice,
@@ -134,13 +201,22 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
       
       if (passengerError) throw passengerError
       
-      // Update seat status to occupied
-      const { error: seatError } = await supabase
-        .from('seats')
-        .update({ status: 'occupied' })
-        .in('id', selectedSeats.map(s => s.id))
-      
-      if (seatError) throw seatError
+      // Permanently mark seats as occupied (user already holds them as 'selected')
+      for (const selectedSeat of selectedSeats) {
+        const { error: seatError } = await supabase
+          .from('seats')
+          .update({ 
+            status: 'occupied',
+            selected_by: user.id,
+            selected_at: new Date().toISOString()
+          })
+          .eq('id', selectedSeat.id)
+          .eq('selected_by', user.id) // only update if this user holds it
+        
+        if (seatError) {
+          throw new Error('Failed to confirm seat. Please try again.')
+        }
+      }
       
       // Success toast
       toast.success('Booking confirmed! 🎉')
@@ -337,10 +413,12 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
                   className="mt-8"
                 >
                   <div className="flex items-start gap-3">
-                    <Checkbox
+                    <input
+                      type="checkbox"
                       id="terms"
+                      className="w-4 h-4 mt-0.5 rounded border-2 border-gray-400 bg-transparent checked:bg-cyan-500 checked:border-cyan-500 cursor-pointer accent-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
                       checked={agreeToTerms}
-                      onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
+                      onChange={(e) => setAgreeToTerms(e.target.checked)}
                     />
                     <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer">
                       I agree to the{' '}
@@ -439,7 +517,7 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
                   <Button
                     onClick={handleSubmit}
                     disabled={!isFormValid() || isLoading}
-                    className="w-full h-12 bg-primary hover:bg-primary/90"
+                    className="w-full h-12 bg-primary hover:bg-primary/90 cursor-pointer disabled:cursor-not-allowed"
                   >
                     {isLoading ? (
                       <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />

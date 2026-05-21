@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowLeft } from 'lucide-react'
 import BookingCard from './booking-card'
 import BookingsEmpty from './bookings-empty'
 import CancelModal from './cancel-modal'
@@ -43,21 +45,23 @@ export default function BookingsDashboard({ bookings: initialBookings }: Booking
 
     try {
       // Call the cancel_booking RPC function
-      const { data, error } = await supabase.rpc('cancel_booking', {
+      const { error } = await supabase.rpc('cancel_booking', {
         p_booking_id: selectedBooking.id
       })
 
       if (error) {
-        // Check if it's the 2-hour restriction error
-        if (error.message.includes('Cannot cancel within 2 hours of departure')) {
-          toast.error('Cannot cancel within 2 hours of departure')
+        // Supabase RPC errors come in error.message
+        const message = error.message || 'Failed to cancel booking'
+        // Check for the 2-hour rule error
+        if (message.includes('2 hours') || message.includes('Cannot cancel')) {
+          toast.error('Cannot cancel within 2 hours of departure.')
         } else {
-          toast.error('Failed to cancel booking. Please try again.')
+          toast.error(message)
         }
-        throw error
+        return
       }
 
-      // Update local state
+      // Success - update local state
       setBookings(prev => prev.map(b =>
         b.id === selectedBooking.id ? { ...b, status: 'cancelled' } : b
       ))
@@ -68,6 +72,7 @@ export default function BookingsDashboard({ bookings: initialBookings }: Booking
       toast.success('Booking cancelled successfully.')
     } catch (error) {
       console.error('Cancel error:', error)
+      toast.error('Failed to cancel booking. Please try again.')
     } finally {
       setCancelling(false)
       setCancelModalOpen(false)
@@ -103,6 +108,15 @@ export default function BookingsDashboard({ bookings: initialBookings }: Booking
   return (
     <div className="min-h-screen bg-[#0a0a0f] pt-24 pb-16 px-4">
       <div className="max-w-4xl mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <Link 
+            href="/"
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
+          </Link>
+        </div>
         
         {/* Header */}
         <motion.div

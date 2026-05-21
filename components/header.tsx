@@ -109,34 +109,38 @@ export function Header() {
         {/* Auth Section */}
         <div className="hidden md:flex items-center gap-4">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <User className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-sm">{user.email?.split('@')[0]}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 glass-card">
-                <DropdownMenuItem asChild>
-                  <Link href="/bookings" className="flex items-center gap-2">
-                    <Ticket className="h-4 w-4" />
-                    My Bookings
+            <div className="flex items-center gap-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Link href="/profile">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="text-sm">{user.email?.split('@')[0]}</span>
+                    </Button>
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 glass-card">
+                  <DropdownMenuItem asChild>
+                    <Link href="/bookings" className="flex items-center gap-2">
+                      <Ticket className="h-4 w-4" />
+                      My Bookings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           ) : (
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" asChild>
