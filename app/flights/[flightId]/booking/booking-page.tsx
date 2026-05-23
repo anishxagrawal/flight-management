@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { createClient } from '@/lib/supabase/client'
-import { useFlightStore, calculateTotalPrice, generatePNR } from '@/lib/stores/flight-store'
+import { useFlightStore, calculateTotalPrice } from '@/lib/stores/flight-store'
 import type { FlightWithDetails, Profile, Passenger } from '@/lib/types'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -124,36 +124,63 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
     setError(null)
 
     const supabase = createClient()
-    const pnrCode = generatePNR()
+    // Inline PNR generator to guarantee a non-null 6-char code
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    let pnrCode = ''
+    for (let i = 0; i < 6; i++) {
+      pnrCode += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    if (!pnrCode || pnrCode.length !== 6) {
+      setIsLoading(false)
+      setError('Failed to generate booking reference')
+      return
+    }
 
     try {
-      const passengersPayload = passengerForms.map((p, index) => ({
+      // 1) Create booking record with generated PNR
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          user_id: user.id,
+          flight_id: flight.id,
+          seat_id: selectedSeats[0].id,
+          pnr_code: pnrCode,
+          status: 'confirmed',
+          total_price: totalPrice,
+        })
+        .select()
+        .single()
+
+      if (bookingError) throw bookingError
+
+      // 2) Insert passengers linked to booking
+      const passengerData = passengerForms.map((p, index) => ({
+        booking_id: booking.id,
+        seat_id: p.seat_id,
         first_name: p.first_name!,
         last_name: p.last_name!,
+        email: p.email || null,
+        phone: p.phone || null,
         passport_number: p.passport_number || null,
+        nationality: p.nationality || null,
         date_of_birth: p.date_of_birth || null,
-        is_primary: index === 0,
+        is_primary: p.is_primary || index === 0,
       }))
 
-      const { data, error: rpcError } = await supabase.rpc('create_complete_booking', {
-        p_flight_id: flight.id,
-        p_seat_id: selectedSeats[0].id,
-        p_user_id: user.id,
-        p_passengers: passengersPayload,
-        p_total_price: totalPrice,
-      })
+      const { error: passengerError } = await supabase.from('passengers').insert(passengerData)
+      if (passengerError) throw passengerError
 
-      if (rpcError) throw rpcError
+      // 3) Mark seats as occupied
+      const { error: seatError } = await supabase
+        .from('seats')
+        .update({ status: 'occupied', selected_by: user.id, selected_at: new Date().toISOString() })
+        .in('id', selectedSeats.map(s => s.id))
 
-      if (!data.success) {
-        toast.error(data.error || 'Booking failed, please try again')
-        setError(data.error || 'Booking failed')
-        return
-      }
+      if (seatError) throw seatError
 
       toast.success('Booking confirmed! 🎉')
-      setBookingComplete(data.booking_id, pnrCode)
-      router.push(`/bookings/${data.booking_id}/confirmation`)
+      setBookingComplete(booking.id, pnrCode)
+      router.push(`/bookings/${booking.id}/confirmation`)
 
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to complete booking'
