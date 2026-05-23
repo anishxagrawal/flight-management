@@ -58,25 +58,14 @@ export function SeatSelectionPage({ flight, initialSeats, user }: SeatSelectionP
   const canProceed = selectedSeats.length === passengers
   
   const handleContinue = () => {
-    console.log('=== CONTINUE TO BOOKING DEBUG ===')
-    console.log('selectedSeats:', selectedSeats)
-    console.log('selectedSeats.length:', selectedSeats.length)
-    console.log('passengers:', passengers)
-    console.log('canProceed:', canProceed)
-    console.log('user:', user)
-    console.log('=== END DEBUG ===')
-    
     if (!user) {
       router.push('/auth/login?redirect=' + encodeURIComponent(`/flights/${flight.id}/seats`))
       return
     }
     
     if (!canProceed) {
-      console.log('❌ Cannot proceed - not enough seats selected')
       return
     }
-    
-    console.log('✅ Proceeding to booking page...')
     setIsLoading(true)
     router.push(`/flights/${flight.id}/booking`)
   }

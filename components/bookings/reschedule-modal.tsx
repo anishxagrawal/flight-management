@@ -95,6 +95,7 @@ export default function RescheduleModal({ open, onClose, booking, onSuccess }: R
           flight_id: selectedFlightId,
           status: 'rescheduled',
           total_price: booking.total_price + feeCharged,
+          seat_id: null,
         })
         .eq('id', booking.id)
 

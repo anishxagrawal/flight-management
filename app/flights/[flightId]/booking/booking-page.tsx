@@ -43,31 +43,9 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
   const seatClass = searchParams.seatClass || 'economy'
   const passengers = searchParams.passengers || 1
   
-  // Debug: Log store state and localStorage
-  console.log('=== BOOKING PAGE DEBUG ===')
-  console.log('selectedSeats from store:', selectedSeats)
-  console.log('searchParams from store:', searchParams)
-  console.log('flight:', flight)
-  
-  // Check localStorage
-  if (typeof window !== 'undefined') {
-    const storedData = localStorage.getItem('flight-booking-storage')
-    console.log('localStorage flight-booking-storage:', storedData)
-    if (storedData) {
-      try {
-        const parsed = JSON.parse(storedData)
-        console.log('Parsed localStorage:', parsed)
-      } catch (e) {
-        console.log('Error parsing localStorage:', e)
-      }
-    }
-  }
-  console.log('=== END DEBUG ===')
-  
   // If no seats selected, redirect back to seat selection
   useEffect(() => {
     if (selectedSeats.length === 0) {
-      console.log('No seats selected, redirecting to seat selection...')
       router.push(`/flights/${flight.id}/seats`)
     }
   }, [selectedSeats.length, flight.id, router])
@@ -123,30 +101,15 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
   }
   
   const isFormValid = () => {
-    // Debug logging
-    console.log('=== FORM VALIDATION DEBUG ===')
-    console.log('selectedSeats:', selectedSeats)
-    console.log('selectedSeats.length:', selectedSeats.length)
-    console.log('passengerForms:', passengerForms)
-    console.log('passengerForms.length:', passengerForms.length)
-    console.log('agreeToTerms:', agreeToTerms)
-    
-    // Check if we have seats selected
     if (selectedSeats.length === 0) {
-      console.log('❌ No seats selected')
       return false
     }
     
-    // Check if passenger forms are filled
     const formsValid = passengerForms.every(p => 
       p.first_name && 
       p.last_name && 
       p.email
     )
-    console.log('formsValid:', formsValid)
-    console.log('agreeToTerms:', agreeToTerms)
-    console.log('Final result:', formsValid && agreeToTerms)
-    console.log('=== END DEBUG ===')
     
     return formsValid && agreeToTerms && selectedSeats.length > 0
   }
@@ -154,79 +117,45 @@ export function BookingPage({ flight, user, profile }: BookingPageProps) {
   const handleSubmit = async () => {
     if (!isFormValid()) {
       setError('Please fill in all required fields and agree to the terms')
-      toast.error('Please fill in all required fields and agree to the terms')
       return
     }
-    
+
     setIsLoading(true)
     setError(null)
-    
+
+    const supabase = createClient()
+    const pnrCode = generatePNR()
+
     try {
-      const supabase = createClient()
-      const pnrCode = generatePNR()
-      
-      // Create booking
-      const { data: booking, error: bookingError } = await supabase
-        .from('bookings')
-        .insert({
-          user_id: user.id,
-          flight_id: flight.id,
-          seat_id: selectedSeats[0].id, // Primary seat for the booking
-          pnr_code: pnrCode,
-          status: 'confirmed',
-          total_price: totalPrice,
-        })
-        .select()
-        .single()
-      
-      if (bookingError) throw bookingError
-      
-      // Create passengers
-      const passengerData = passengerForms.map(p => ({
-        booking_id: booking.id,
-        seat_id: p.seat_id,
+      const passengersPayload = passengerForms.map((p, index) => ({
         first_name: p.first_name!,
         last_name: p.last_name!,
-        email: p.email || null,
-        phone: p.phone || null,
         passport_number: p.passport_number || null,
-        nationality: p.nationality || null,
         date_of_birth: p.date_of_birth || null,
-        is_primary: p.is_primary || false,
+        is_primary: index === 0,
       }))
-      
-      const { error: passengerError } = await supabase
-        .from('passengers')
-        .insert(passengerData)
-      
-      if (passengerError) throw passengerError
-      
-      // Permanently mark seats as occupied (user already holds them as 'selected')
-      for (const selectedSeat of selectedSeats) {
-        const { error: seatError } = await supabase
-          .from('seats')
-          .update({ 
-            status: 'occupied',
-            selected_by: user.id,
-            selected_at: new Date().toISOString()
-          })
-          .eq('id', selectedSeat.id)
-          .eq('selected_by', user.id) // only update if this user holds it
-        
-        if (seatError) {
-          throw new Error('Failed to confirm seat. Please try again.')
-        }
+
+      const { data, error: rpcError } = await supabase.rpc('create_complete_booking', {
+        p_flight_id: flight.id,
+        p_seat_id: selectedSeats[0].id,
+        p_user_id: user.id,
+        p_passengers: passengersPayload,
+        p_total_price: totalPrice,
+      })
+
+      if (rpcError) throw rpcError
+
+      if (!data.success) {
+        toast.error(data.error || 'Booking failed, please try again')
+        setError(data.error || 'Booking failed')
+        return
       }
-      
-      // Success toast
+
       toast.success('Booking confirmed! 🎉')
-      
-      // Store booking info and redirect
-      setBookingComplete(booking.id, pnrCode)
-      router.push(`/bookings/${booking.id}/confirmation`)
-      
+      setBookingComplete(data.booking_id, pnrCode)
+      router.push(`/bookings/${data.booking_id}/confirmation`)
+
     } catch (err) {
-      console.error('Booking error:', err)
       const message = err instanceof Error ? err.message : 'Failed to complete booking'
       toast.error(message)
       setError(message)

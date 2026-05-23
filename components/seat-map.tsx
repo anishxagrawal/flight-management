@@ -81,52 +81,16 @@ export function SeatMap({ flightId, initialSeats, passengerCount, seatClass }: S
     const isSelected = selectedSeats.some(s => s.id === seat.id)
     
     if (isSelected) {
-      // Deselect seat - revert to available
       removeSeat(seat.id)
-      
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('seats')
-        .update({ 
-          status: 'available', 
-          selected_by: null,
-          selected_at: null 
-        })
-        .eq('id', seat.id)
-        .eq('selected_by', userId) // only release if this user selected it
-      
-      if (error) {
-        console.error('Error releasing seat:', error)
-      }
-    } else {
-      // Check if max seats reached
-      if (selectedSeats.length >= passengerCount) {
-        toast.warning(`You can only select ${passengerCount} seat(s)`)
-        return
-      }
-      
-      // Select seat - mark as temporarily held
-      const supabase = createClient()
-      const { error, count } = await supabase
-        .from('seats')
-        .update({ 
-          status: 'selected', 
-          selected_by: userId,
-          selected_at: new Date().toISOString()
-        })
-        .eq('id', seat.id)
-        .eq('status', 'available') // only if still available
-      
-      if (error || count === 0) {
-        toast.error('Seat just got taken, please choose another')
-        return
-      }
-      
-      // Add to local state after successful selection
-      addSeat({ ...seat, status: 'selected', selected_by: userId })
-      console.log('✅ Seat added to store:', seat.seat_number)
-      console.log('Current selectedSeats in store:', selectedSeats)
+      return
     }
+
+    if (selectedSeats.length >= passengerCount) {
+      toast.warning(`You can only select ${passengerCount} seat(s)`)
+      return
+    }
+
+    addSeat(seat)
   }, [userId, selectedSeats, passengerCount, addSeat, removeSeat])
 
   // Group seats by row
