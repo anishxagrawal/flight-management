@@ -1,234 +1,164 @@
-# SkyVoyage ✈️
+# SkyVoyage
 
-A premium real-time flight booking PWA built with Next.js, Supabase, and Tailwind CSS.
+SkyVoyage is a premium flight management PWA built with Next.js, Supabase, Tailwind CSS, Framer Motion, and Zustand. It combines a polished travel booking experience with live seat selection, authenticated bookings, passenger management, and a modern aviation-inspired interface.
+
+## Overview
+
+This project is designed to simulate a high-end airline booking platform with a strong focus on:
+
+- Real-time seat selection and booking flow
+- Supabase authentication and database-backed records
+- Smooth, animated UI interactions
+- Mobile-first, responsive design
+- Persisted booking state with Zustand
+- Clean separation between flight search, seat selection, passenger entry, and confirmation
 
 ## Tech Stack
 
-- **Framework:** Next.js 16 (App Router)
-- **Database & Auth:** Supabase (PostgreSQL with RLS)
-- **Styling:** Tailwind CSS
-- **Animations:** Framer Motion
-- **State Management:** Zustand (with persist middleware)
-- **UI Components:** Radix UI
+- Next.js App Router
+- TypeScript
+- Supabase Auth + PostgreSQL
+- Tailwind CSS
+- Framer Motion
+- Zustand
+- Radix UI components
+- Lucide icons
+- date-fns
 
-## Features
+## Core Features
 
-- Real-time seat selection with live availability
-- Animated booking flow (Search → Seats → Passengers → Confirm)
-- Authentication with Supabase Auth
-- My Bookings dashboard with cancellation & rescheduling
-- Thread-safe seat reservation using database row locking
-- Automatic cancellation prevention within 2 hours of departure
-- Dark aviation-themed UI with glassmorphism
-- Mobile-responsive design
+- Flight search and route discovery
+- Live seat selection and booking state management
+- Passenger details form for multiple travelers
+- Booking confirmation with PNR generation
+- Bookings dashboard with cancellation and rescheduling actions
+- Profile and authentication flows
+- Aviation-themed UI with glassmorphism-style panels
+- PWA-friendly structure for a more app-like experience
+
+## Project Structure
+
+```text
+app/
+  auth/
+  bookings/
+  flights/
+  profile/
+components/
+  bookings/
+  flights/
+  ui/
+lib/
+  stores/
+  supabase/
+supabase/
+  migrations/
+public/
+styles/
+```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm (or pnpm)
-- A Supabase account and project
+- Node.js 18 or newer
+- pnpm, npm, or yarn
+- A Supabase project
 
-### Local Setup
+### 1. Install Dependencies
 
-1. **Clone the repository**
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-   
-   *Note: This project was originally set up with pnpm, but npm works fine too.*
-
-3. **Set up Supabase:**
-
-   a. Create a new Supabase project at [supabase.com](https://supabase.com)
-   
-   b. Run the migrations in order:
-      - Go to SQL Editor in your Supabase dashboard
-      - Copy and execute each file in `supabase/migrations/` in order:
-        1. `000_airports.sql` - Creates airports reference table (optional but recommended)
-        2. `001_schema.sql` - Creates tables and RLS policies
-        3. `002_rpc.sql` - Creates RPC functions for seat reservation and cancellation
-        4. `003_trigger.sql` - Creates trigger to prevent late cancellations
-        5. `004_seed.sql` - **Comprehensive seed data:**
-           - 30 routes covering all combinations between 6 cities
-           - 3 flights per day for next 30 days per route
-           - ~2,700 total flights with full seat maps
-           - Cities: DEL, BOM, BLR, HYD, CCU, MAA
-           - **Note:** This will take 2-3 minutes to complete due to seat generation
-   
-   c. Create test user via Supabase Auth Dashboard:
-      - Go to Authentication → Users → Add User
-      - Email: `test@skyvoyage.com`
-      - Password: `Test@123456`
-      - Confirm email automatically
-
-4. **Configure environment variables:**
-   ```bash
-   # On Windows PowerShell:
-   Copy-Item .env.example .env.local
-   
-   # On Mac/Linux:
-   cp .env.example .env.local
-   ```
-   
-   Edit `.env.local` and add your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-   ```
-   
-   Find these in: Supabase Dashboard → Settings → API
-
-5. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-   
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Supabase Project Configuration
-
-### Database Schema
-
-The application uses the following tables:
-- **flights** - Flight schedules with origin, destination, times, and pricing (~2,700 flights)
-- **seats** - Seat inventory per flight with class and availability (~162,000 seats)
-- **bookings** - User bookings with PNR codes and status
-- **passengers** - Passenger details linked to bookings
-- **reschedules** - Reschedule history with fee tracking
-- **airports_reference** - Airport codes and names for search (optional)
-
-### Seed Data Coverage
-
-The seed data includes:
-- **6 Cities:** Delhi (DEL), Mumbai (BOM), Bangalore (BLR), Hyderabad (HYD), Kolkata (CCU), Chennai (MAA)
-- **30 Routes:** All possible combinations between the 6 cities
-- **3 Flights per Day:** Morning (6 AM), Afternoon (2 PM), Evening (8 PM)
-- **30 Days:** Flights available for the next month
-- **Total:** ~2,700 flights with complete seat maps (first, business, economy)
-
-This ensures testers can search for any route on any date and find available flights!
-
-### RPC Functions
-
-- **reserve_seat(p_seat_id, p_user_id)** - Thread-safe seat reservation with row locking
-- **cancel_booking(p_booking_id)** - Cancellation with 2-hour departure check
-
-### Database Triggers
-
-- **prevent_late_cancellation** - Automatically prevents booking cancellation within 2 hours of departure
-
-### Row Level Security (RLS)
-
-All tables have RLS enabled:
-- **flights & seats** - Public read access
-- **bookings, passengers, reschedules** - Users can only access their own data (filtered by `auth.uid()`)
-
-## Zustand Store Structure
-
-The application uses two separate Zustand stores:
-
-### Flight Store (`lib/stores/flight-store.ts`)
-
-Manages the booking flow state:
-- Search query parameters
-- Selected flight and seats
-- Current booking step
-- Passenger form data
-
-**Partialize Strategy:**
-- ✅ Persists: search query, selected flight, selected seats, booking step
-- ❌ Excludes: `passport_no` from passenger forms (security - sensitive data not stored in localStorage)
-
-**Key Features:**
-- Optimistic seat selection (marks seat selected immediately, confirms after Supabase)
-- `resetStore()` action triggered on cancellation and logout
-
-### User Store (`lib/stores/user-store.ts`)
-
-Manages user session and cached data:
-- Supabase session token
-- Cached bookings list
-
-**Partialize Strategy:**
-- ✅ Persists: session token only
-- ❌ Excludes: cached bookings (fetched fresh on each load)
-
-## Test Credentials
-
-Use these credentials to test the application:
-
-- **Email:** `test@skyvoyage.com`
-- **Password:** `Test@123456`
-
-## Project Structure
-
-```
-app/                  # Next.js App Router pages
-  auth/               # Login & signup pages
-  flights/            # Search results & seat selection
-  bookings/           # My bookings dashboard
-components/           # Reusable UI components
-  bookings/           # Booking dashboard components
-  flights/            # Flight card components
-  ui/                 # Radix UI components
-lib/                  # Core utilities
-  stores/             # Zustand stores (flight-store, user-store)
-  supabase/           # Supabase client configuration
-  types.ts            # TypeScript type definitions
-supabase/
-  migrations/         # Database migrations (run in order)
+```bash
+pnpm install
 ```
 
-## Scripts
+If you prefer npm:
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
+```bash
+npm install
+```
 
-## What Would Be Improved With More Time
+### 2. Configure Environment Variables
 
-### PWA Enhancements
-- **Service Worker** - Offline support and caching strategy
-- **Web App Manifest** - Better PWA scoring with proper icons and theme colors
-- **Push Notifications** - Flight status updates and reminders
-- **Install Prompt** - Custom A2HS (Add to Home Screen) experience
+Create a `.env.local` file in the project root and add your Supabase details:
 
-### Payment Integration
-- **Stripe/Razorpay Integration** - Real payment processing
-- **Payment Status Tracking** - Pending → Confirmed flow
-- **Refund Handling** - Automated refunds for cancellations
-- **Invoice Generation** - PDF receipts and tax invoices
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-### Additional Features
-- **Email Notifications** - Booking confirmations, reminders, status updates
-- **SMS Notifications** - OTP verification and flight alerts
-- **Multi-language Support** - i18n for global users
-- **Currency Conversion** - Dynamic pricing based on user location
-- **Flight Status Tracking** - Real-time delay/gate information
-- **Loyalty Program** - Points and rewards system
-- **Admin Dashboard** - Flight management and analytics
+### 3. Set Up Supabase
 
-### Performance Optimizations
-- **Image Optimization** - WebP format, lazy loading
-- **Code Splitting** - Route-based chunking
-- **CDN Integration** - Static asset delivery
-- **Database Indexing** - Query performance tuning
-- **Caching Strategy** - Redis for frequently accessed data
+Run the SQL migrations in `supabase/migrations/` in order.
 
-### Testing & Quality
-- **Unit Tests** - Jest/Vitest for components
-- **Integration Tests** - API endpoint testing
-- **E2E Tests** - Playwright for user flows
-- **Accessibility Audit** - WCAG 2.1 AA compliance
-- **Performance Monitoring** - Sentry error tracking
+Recommended order:
 
-## Environment Variables
+1. `000_schema.sql` - Core tables and indexes
+2. `001_rls.sql` - Row level security policies
+3. `002_rpc.sql` - RPC functions and triggers
+4. `003_seed.sql` - Seed data for airports, airlines, aircraft, and flights
 
-See `.env.example` for required environment variables.
+If your Supabase project uses additional migration files, apply those as part of the same setup.
+
+### 4. Start the App
+
+```bash
+pnpm dev
+```
+
+Or with npm:
+
+```bash
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:3000
+```
+
+## Demo Login
+
+Use these test credentials to sign in during local testing:
+
+- Username: `test@gmail.com`
+- Password: `test1234`
+
+## Useful Scripts
+
+- `pnpm dev` - Start the development server
+- `pnpm build` - Build the app for production
+- `pnpm start` - Run the production build
+- `pnpm lint` - Run lint checks
+
+If you use npm, the equivalent commands are:
+
+- `npm run dev`
+- `npm run build`
+- `npm run start`
+- `npm run lint`
+
+## Notes
+
+- Seat and booking state is managed locally in Zustand and synchronized with Supabase on booking actions.
+- Passenger and booking data are stored in the database and tied to the authenticated user.
+- The application expects the Supabase schema and policies to be applied before trying the booking flow.
+- If you change the database schema, update the matching types in `lib/types.ts` and any affected queries.
+
+## Environment Example
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
+```
+
+## Support Files
+
+- `README.md` - Project overview and setup
+- `QUICK_TEST_GUIDE.md` - Fast manual testing checklist
+- `IMPLEMENTATION_SUMMARY.md` - Feature summary
+- `COMPREHENSIVE_SEED_DATA_SUMMARY.md` - Seed data details
+- `SEED_DATA_COMPLETE.md` - Seed data completion notes
 
 ## License
 
